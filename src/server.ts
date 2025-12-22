@@ -1,4 +1,4 @@
-// src/server.ts
+
 import { extname, join, normalize } from "jsr:@std/path";
 import { fromFileUrl } from "jsr:@std/path/from-file-url";
 import { eachValueFrom } from "npm:rxjs-for-await";
