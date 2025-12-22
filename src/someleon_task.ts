@@ -1,4 +1,3 @@
-// src/someleon_task.ts
 export function buildSomeleonTask(input: {
   objective: string;
   transcript: string;     // full transcript in You:/Them:

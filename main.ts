@@ -1,4 +1,3 @@
-// main.ts
 import "jsr:@std/dotenv/load";
 
 import {
