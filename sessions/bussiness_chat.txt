@@ -1,0 +1,6 @@
+You: Hi Mark — circling back on the pilot. Any updates from your side?
+Him: We’re evaluating 2 vendors. Your pricing still feels high.
+You: Totally hear you. We can be flexible if the scope is clear.
+Him: Also your onboarding timeline seems risky. We need this live in 3 weeks.
+You: We can do it, but we’d need faster access to your data + a technical POC call.
+Him: Not sure we can commit to that this week.

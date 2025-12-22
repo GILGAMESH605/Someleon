@@ -1,143 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Someleon AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #fafafa; }
-        .insta-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; }
-        .chat-bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 14px; margin-bottom: 8px; }
-        .bubble-me { background: #3797f0; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .bubble-them { background: #efefef; color: black; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .gradient-text { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        /* Loading Animation */
-        .typing-indicator span { animation: blink 1.4s infinite both; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Someleon — Social Cameleon</title>
+  <link rel="stylesheet" href="/assets/app.css" />
+  <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
-<body class="h-screen flex items-center justify-center">
+<body>
+  <div class="app">
+    <aside class="left">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="name">Someleon</div>
+      </div>
 
-    <div class="w-full max-w-4xl h-[90vh] flex gap-4 p-4">
-        
-        <div class="w-1/3 insta-card flex flex-col p-6 shadow-sm">
-            <h1 class="text-2xl font-bold mb-1 gradient-text tracking-tighter">Someleon</h1>
-            <p class="text-xs text-gray-500 mb-6">Social Context Agent</p>
+      <div class="controls">
+        <label class="label">Objective (any goal)</label>
+        <input id="objective" class="input" placeholder="e.g., calm things down and repair trust" />
 
-            <label class="text-xs font-semibold text-gray-400 uppercase mb-2">Your Goal</label>
-            <input id="goalInput" type="text" placeholder="e.g. Close the deal, Get a date..." 
-                   class="w-full bg-gray-50 border border-gray-200 rounded p-3 text-sm mb-4 focus:outline-none focus:border-gray-400 transition">
+        <label class="row">
+          <input type="checkbox" id="crawl" />
+          <span>Enable web crawl (Firecrawl MCP)</span>
+        </label>
 
-            <label class="text-xs font-semibold text-gray-400 uppercase mb-2">Paste Chat History</label>
-            <textarea id="chatInput" placeholder="Paste the conversation here..." 
-                      class="w-full flex-grow bg-gray-50 border border-gray-200 rounded p-3 text-sm resize-none focus:outline-none focus:border-gray-400 transition"></textarea>
+        <label class="label">Upload screenshot / file (optional)</label>
+        <input id="upload" type="file" accept=".txt,.json,.png,.jpg,.jpeg" />
 
-            <button onclick="runAgent()" id="sendBtn"
-                    class="mt-4 w-full bg-[#3797f0] hover:bg-[#288ad6] text-white font-semibold py-3 rounded-lg transition shadow-md">
-                Generate Strategy
-            </button>
+        <div class="btnRow">
+          <button id="btnNormalize" class="secondary">Normalize</button>
+          <button id="btnOCR" class="secondary">OCR Image</button>
         </div>
 
-        <div class="w-2/3 flex flex-col gap-4">
-            
-            <div id="statusPanel" class="hidden w-full bg-black text-green-400 font-mono text-xs p-4 rounded-lg shadow-lg border border-gray-800 h-32 overflow-y-auto">
-                <div class="flex items-center gap-2 border-b border-gray-700 pb-2 mb-2">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    SOMELEON AGENT CORE
-                </div>
-                <div id="agentLogs"></div>
-            </div>
-
-            <div class="flex-grow insta-card p-6 overflow-y-auto shadow-sm relative">
-                <div id="welcomeState" class="absolute inset-0 flex items-center justify-center flex-col text-gray-300">
-                    <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    <p>Paste chat logs to begin analysis</p>
-                </div>
-                
-                <div id="resultContent" class="hidden prose prose-sm max-w-none">
-                    </div>
-            </div>
+        <div class="btnRow">
+          <button id="btnNewSession" class="secondary">New/Reset Session</button>
+          <button id="run" class="primary">Run Agent</button>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-        async function runAgent() {
-            const goal = document.getElementById('goalInput').value;
-            const chatLog = document.getElementById('chatInput').value;
-            const statusPanel = document.getElementById('statusPanel');
-            const agentLogs = document.getElementById('agentLogs');
-            const resultContent = document.getElementById('resultContent');
-            const welcomeState = document.getElementById('welcomeState');
-            const btn = document.getElementById('sendBtn');
+        <div class="hint" id="sessionHint">Session: (not created yet)</div>
+      </div>
+    </aside>
 
-            if(!goal || !chatLog) return alert("Please fill in both fields");
+    <main class="center">
+      <header class="topbar">
+        <div class="threadTitle" id="threadTitle">DM Thread</div>
+        <div class="pill" id="status">idle</div>
+      </header>
 
-            // Reset UI
-            welcomeState.classList.add('hidden');
-            resultContent.classList.remove('hidden');
-            statusPanel.classList.remove('hidden');
-            resultContent.innerHTML = '<div class="typing-indicator text-gray-400 text-sm">Thinking<span>.</span><span>.</span><span>.</span></div>';
-            agentLogs.innerHTML = '';
-            btn.disabled = true;
-            btn.innerText = "Processing...";
+      <section class="chat" id="chat"></section>
 
-            try {
-                const response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    body: JSON.stringify({ purpose: goal, chatLog: chatLog })
-                });
+      <section class="composer">
+        <textarea id="thread" placeholder="Paste chat thread here... (prefer You:/Them: format)"></textarea>
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let accumulatedText = "";
+        <div class="turnBox">
+          <div class="turnCol">
+            <div class="label">You sent (edit then commit)</div>
+            <textarea id="youSent" class="mini" placeholder="Pick an option or type your actual sent message..."></textarea>
+            <button id="btnCommitYou" class="secondary">Commit You Message</button>
+          </div>
+          <div class="turnCol">
+            <div class="label">Them replied</div>
+            <textarea id="themReply" class="mini" placeholder="Paste their reply here..."></textarea>
+            <button id="btnCommitThem" class="secondary">Commit Reply</button>
+          </div>
+        </div>
+      </section>
+    </main>
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-                    
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        try {
-                            const event = JSON.parse(line);
-                            
-                            // Handling Zypher Events to show "Agency"
-                            if (event.type === 'tool_call') {
-                                // Highlighting tool use (Firecrawl)
-                                const logItem = document.createElement('div');
-                                logItem.className = "mb-1 text-yellow-400";
-                                logItem.innerText = `> 🛠️ AGENCY TRIGGER: Using ${event.tool} to research context...`;
-                                agentLogs.appendChild(logItem);
-                                agentLogs.scrollTop = agentLogs.scrollHeight;
-                            } 
-                            else if (event.content) {
-                                // Final Answer
-                                accumulatedText += event.content;
-                                resultContent.innerHTML = marked.parse(accumulatedText);
-                            }
-                        } catch (e) {
-                            // If it's just raw text streaming
-                            // accumulatedText += line;
-                        }
-                    }
-                }
+    <aside class="right">
+      <div class="panel">
+        <div class="panelTitle">Agent Agency</div>
+        <div class="panelSub">Timeline (parsed events)</div>
+        <div id="timeline" class="timeline"></div>
+      </div>
 
-            } catch (err) {
-                alert("Error connecting to agent");
-                console.error(err);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Generate Strategy";
-            }
-        }
-    </script>
+      <div class="panel">
+        <div class="panelTitle">Counterpart Profile</div>
+        <div class="panelSub">Based on evidence in the transcript</div>
+        <div id="profile" class="cardText">(run agent to see)</div>
+      </div>
+
+      <div class="panel">
+        <div class="panelTitle">Strategy</div>
+        <div class="panelSub">North-star + next-step</div>
+        <div id="strategy" class="cardText">(run agent to see)</div>
+      </div>
+
+      <div class="panel">
+        <div class="panelTitle">Message Options</div>
+        <div class="panelSub">Click to copy + fill “You sent”</div>
+        <div id="options" class="options"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/assets/app.js"></script>
 </body>
 </html>

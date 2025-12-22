@@ -1,13 +1,12 @@
 {
   "tasks": {
-    "start": "deno run -A --watch src/server.ts"
+    "demo": "deno run -A main.ts --goal=business --thread=sessions/sample_chat.txt --crawl",
+    "terminal": "deno run -A main.ts --terminal --crawl"
   },
   "imports": {
-    "@zypher/agent": "jsr:@zypher/agent@^0.7.2",
-    "rxjs-for-await": "npm:rxjs-for-await@^1.0.0",
-    "std/": "https://deno.land/std@0.224.0/"
-  },
-  "compilerOptions": {
-    "strict": false
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
+    "@zypher/agent": "jsr:@zypher/agent@^0.7.3",
+    "@zypher/cli": "jsr:@zypher/cli@^0.1.1",
+    "rxjs-for-await": "npm:rxjs-for-await@^1.0.0"
   }
 }
